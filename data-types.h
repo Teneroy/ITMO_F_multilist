@@ -14,8 +14,8 @@ struct def
 
 struct reg : def
 {
-    reg * cnext;
-    reg * snext;
+    reg * cnext; //Указатель на студента или себя
+    reg * snext; //Указатель на курс или себя
     reg()
     {
         cnext = nullptr;
@@ -29,11 +29,11 @@ struct reg : def
 
 struct student : def
 {
-    char name[20];
+    char * name;
     reg * ptr;
     student()
     {
-        name[0] = '\0';
+        name = nullptr;
         ptr = nullptr;
     }
     int check() override
@@ -42,13 +42,15 @@ struct student : def
     };
 };
 
+enum {EMPTY_C = -1};
+
 struct course : def
 {
     int number;
     reg * ptr;
     course()
     {
-        number = -1;
+        number = EMPTY_C;
         ptr = nullptr;
     }
     int check() override
