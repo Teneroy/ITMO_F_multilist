@@ -9,11 +9,64 @@ void Multilist::ADD(const char * studname, unsigned int courseid)
     int key = getKey(studname);
     int stud_pos = searchEl(studname);
     int course_pos = searchEl(courseid);
-    if(_sarr[stud_pos].ptr != nullptr)
+    reg * temp;
+    reg * added;
+    if(_sarr[stud_pos].ptr == nullptr)
     {
-        _sarr[stud_pos].ptr = new reg(_sarr[stud_pos], );
+        _sarr[stud_pos].ptr = new reg((reg*)&_sarr[stud_pos], nullptr);
+        added = _sarr[stud_pos].ptr;
+    } else
+    {
+        temp = get_last(_sarr[stud_pos].ptr);
+        added = add_to_end(_sarr[stud_pos].ptr, temp);
+    }
+    if(_carr[course_pos].ptr == nullptr)
+    {
+        added -> snext = (reg*)&_carr[course_pos];
+        _carr[course_pos].ptr = added;
+    } else
+    {
+        temp = get_last( _carr[course_pos].ptr);
+        added = add_to_end(_carr[course_pos].ptr, temp, added);
     }
 }
+
+void Multilist::GETSTUDLIST(unsigned int courseid) const
+{
+    std::cout << "Studlist: ";
+    int course_pos = searchEl(courseid);
+    reg * temp = _carr[course_pos].ptr;
+    while (temp != (reg*)&_carr[course_pos])
+    {
+        if(temp -> cnext -> check() == STUD)
+        {
+            student * temp2;
+            temp2 = (student *)temp -> cnext;
+            std::cout << temp2 -> name << ", ";
+        }
+        temp = temp -> snext;
+    }
+    std::cout << ";" << std::endl;
+}
+
+void Multilist::GETCOURSELIST(const char * studname) const
+{
+    std::cout << "Courselist: ";
+    int stud_pos = searchEl(studname);
+    reg * temp = _sarr[stud_pos].ptr;
+    while (temp != (reg*)&_sarr[stud_pos])
+    {
+        if(temp -> snext -> check() == STUD)
+        {
+            student * temp2;
+            temp2 = (student *)temp -> snext;
+            std::cout << temp2 -> name << ", ";
+        }
+        temp = temp -> cnext;
+    }
+    std::cout << ";" << std::endl;
+}
+
 
 void Multilist::READFILE(const char * filename_s, const char * filename_c)
 {
@@ -151,7 +204,7 @@ int Multilist::searchEl(int x) const
     int hs = hash(key, iter);
     if(_carr[hs].number == EMPTY_C)
         return ERR;
-    while (_carr[hs].number == key)
+    while (_carr[hs].number != key)
     {
         iter++;
         hs = hash(key, iter);
@@ -161,3 +214,41 @@ int Multilist::searchEl(int x) const
     return hs;
 }
 
+reg * Multilist::get_last(reg * head) const
+{
+    reg * temp = head;
+    reg * temp2;
+    if(temp -> check() == STUD)
+    {
+        temp2 = head -> cnext;
+        while (temp2 != head)
+        {
+            temp = temp -> cnext;
+            temp2 = temp2 -> cnext;
+        }
+    } else
+    {
+        temp2 = head -> snext;
+        while (temp2 != head)
+        {
+            temp = temp -> snext;
+            temp2 = temp2 -> snext;
+        }
+    }
+    return temp;
+}
+
+reg * Multilist::add_to_end(reg * head, reg * last) const
+{
+    reg * temp = new reg(last -> cnext, nullptr);
+    last -> cnext = temp;
+    return temp;
+}
+
+reg * Multilist::add_to_end(reg * head, reg * last, reg * added) const
+{
+    added -> snext = last -> snext;
+    reg * temp = added;
+    last -> snext = temp;
+    return temp;
+}
