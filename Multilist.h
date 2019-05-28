@@ -29,10 +29,10 @@ private:
     void insert_arr(int x); //вставка в массив курсов
     void insert_arr(const char * x); //вставка в массив студентов
     int getKey(const char * data) const; //Суммирует коды символов в строке
-    int getFreePos(int key, int iter) const; //Получить позицию  для вставкки, путем повторного хеширования
-    int getFreePosCourse(int key, int iter) const;
-    int searchEl(const char * x, int key, int iter) const; //Поиск элемента студента, если не нашли, вернуть ERR
-    int searchEl(int x, int iter) const; //Поиск элемента курса, если не нашли, вернуть ERR
+    int getFreePos(int key) const; //Получить позицию  для вставкки, путем повторного хеширования
+    int getFreePosCourse(int key) const;
+    int searchEl(const char * x) const; //Поиск элемента студента, если не нашли, вернуть ERR
+    int searchEl(int x) const; //Поиск элемента курса, если не нашли, вернуть ERR
     int hash(int key, int iter) const; //хеширование (key + iter) % SIZE
 };
 

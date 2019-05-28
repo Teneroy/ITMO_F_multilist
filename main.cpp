@@ -7,7 +7,7 @@
 int main()
 {
     Multilist a;
-    a.READFILE("C:\\Users\\Teneroy\\YandexDisk\\ITMO_F_multilist\\data.txt", "C:\\Users\\Teneroy\\YandexDisk\\ITMO_F_multilist\\data2.txt");
+    a.READFILE("C:\\Users\\alexc\\YandexDisk\\ITMO_F_multilist\\data.txt", "C:\\Users\\alexc\\YandexDisk\\ITMO_F_multilist\\data2.txt");
     a.PRINT();
 return 0;
 }

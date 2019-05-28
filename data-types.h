@@ -21,6 +21,8 @@ struct reg : def
         cnext = nullptr;
         snext = nullptr;
     };
+    reg(reg * cn, reg * sn) : cnext(cn), snext(sn)
+    {};
     int check() override
     {
         return 0;

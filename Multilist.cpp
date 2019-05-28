@@ -4,9 +4,15 @@
 
 #include "Multilist.h"
 
-void ADD(const char * studname, unsigned int courseid)
+void Multilist::ADD(const char * studname, unsigned int courseid)
 {
-
+    int key = getKey(studname);
+    int stud_pos = searchEl(studname);
+    int course_pos = searchEl(courseid);
+    if(_sarr[stud_pos].ptr != nullptr)
+    {
+        _sarr[stud_pos].ptr = new reg(_sarr[stud_pos], );
+    }
 }
 
 void Multilist::READFILE(const char * filename_s, const char * filename_c)
@@ -59,7 +65,7 @@ void Multilist::insert_arr(const char * x)
         strcpy(_sarr[hs].name, x);
         return;
     }
-    int fp = getFreePos(key, 0);
+    int fp = getFreePos(key);
     _sarr[fp].name = new char[20]; //отдельная функция?
     strcpy(_sarr[fp].name, x);
 }
@@ -71,7 +77,7 @@ void Multilist::insert_arr(int x) {
         _carr[hs].number = x;
         return;
     }
-    int fp = getFreePosCourse(x, 0);
+    int fp = getFreePosCourse(x);
     _carr[fp].number = x;
 }
 
@@ -91,55 +97,67 @@ int Multilist::getKey(const char * data) const
     return key;
 }
 
-int Multilist::getFreePos(int key, int iter) const
+int Multilist::getFreePos(int key) const
 {
-    iter++;
+    int iter = 0;
     int hs = hash(key, iter);
-    if(_sarr[hs].name != nullptr)
+    int check = hs;
+    while(_sarr[hs].name != nullptr)
     {
-        return getFreePos(key, iter);
+        iter++;
+        hs = hash(key, iter);
+        if(hs == check)
+            return ERR;
     }
     return hs;
 }
 
-int Multilist::getFreePosCourse(int key, int iter) const
+int Multilist::getFreePosCourse(int key) const
 {
-    iter++;
+    int iter = 0;
     int hs = hash(key, iter);
-    if(_carr[hs].number != EMPTY_C)
+    int check = hs;
+    while(_carr[hs].number != EMPTY_C)
     {
-        return getFreePosCourse(key, iter);
+        iter++;
+        hs = hash(key, iter);
+        if(hs == check)
+            return ERR;
     }
     return hs;
 }
 
-int Multilist::searchEl(const char * x, int key, int iter) const
+int Multilist::searchEl(const char * x) const
 {
+    int iter = 0;
+    int key = getKey(x);
     int hs = hash(key, iter);
-    iter++;
     if(_sarr[hs].name == nullptr)
         return ERR;
-    if(strcmp(_sarr[hs].name, x) == 0)
+    while (strcmp(_sarr[hs].name, x) != 0)
     {
-        return hs;
-    } else
-    {
-        return searchEl(x, key, iter);
+        iter++;
+        hs = hash(key, iter);
+        if(_sarr[hs].name == nullptr)
+            return ERR;
     }
+    return hs;
 }
 
-int Multilist::searchEl(int key, int iter) const
+int Multilist::searchEl(int x) const
 {
+    int iter = 0;
+    int key = x;
     int hs = hash(key, iter);
-    iter++;
     if(_carr[hs].number == EMPTY_C)
         return ERR;
-    if(_carr[hs].number == key)
+    while (_carr[hs].number == key)
     {
-        return hs;
-    } else
-    {
-        return searchEl(key, iter);
+        iter++;
+        hs = hash(key, iter);
+        if(_carr[hs].number == EMPTY_C)
+            return ERR;
     }
+    return hs;
 }
 
