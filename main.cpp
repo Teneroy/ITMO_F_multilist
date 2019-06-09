@@ -20,9 +20,19 @@ int main()
 //    a.DELETE("Alex", 101);
 //    a.GETSTUDLIST(101);
 //    a.GETCOURSELIST("Alex");
-    a.DELETE("Pit", 101);
-    a.GETSTUDLIST(101);
-    a.DELETE("Alex", 102);
+//    a.DELETE("Pit", 101);
+//    a.GETSTUDLIST(101);
+//    a.DELETE("Alex", 102);
+//    a.GETSTUDLIST(102);
+//    a.REFSTUD("Pit");
+//    a.GETSTUDLIST(101);
+//    a.GETSTUDLIST(102);
+//    a.GETCOURSELIST("Pit");
+    a.REFCOURSE(101);
     a.GETSTUDLIST(102);
+    a.PRINT();
+//    a.GETCOURSELIST("Alex");
+//    a.GETCOURSELIST("Pit");
+//    a.GETSTUDLIST(102);
 return 0;
 }
