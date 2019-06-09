@@ -15,20 +15,35 @@ void Multilist::ADD(const char * studname, unsigned int courseid)
     {
         _sarr[stud_pos].ptr = new reg((reg*)&_sarr[stud_pos], nullptr);
         added = _sarr[stud_pos].ptr;
+        std::cout << studname << "_1step: " << added << std::endl;
     } else
     {
-        temp = get_last(_sarr[stud_pos].ptr);
+        temp = get_last_stud(_sarr[stud_pos].ptr);
+        std::cout << "getLastStud - " << studname << ": " << temp << std::endl;
         added = add_to_end(_sarr[stud_pos].ptr, temp);
     }
     if(_carr[course_pos].ptr == nullptr)
     {
         added -> snext = (reg*)&_carr[course_pos];
+        std::cout << courseid << ": " << "added_snext-" << added -> snext << ", course_addr-" << &_carr[course_pos] << std::endl;
         _carr[course_pos].ptr = added;
     } else
     {
-        temp = get_last( _carr[course_pos].ptr);
-        added = add_to_end(_carr[course_pos].ptr, temp, added);
+        temp = get_last_course(_carr[course_pos].ptr);
+        added -> snext = temp -> snext;
+        temp -> snext = added;
+        //std::cout << studname << ": " << temp << std::endl;
+        //added = add_to_end(_carr[course_pos].ptr, temp, added);
     }
+}
+
+void Multilist::DELETE(const char * studname, unsigned int courseid)
+{
+    int key = getKey(studname);
+    int stud_pos = searchEl(studname);
+    int course_pos = searchEl(courseid);
+    reg * cur; //==temp
+    //reg *
 }
 
 void Multilist::GETSTUDLIST(unsigned int courseid) const
@@ -36,12 +51,22 @@ void Multilist::GETSTUDLIST(unsigned int courseid) const
     std::cout << "Studlist: ";
     int course_pos = searchEl(courseid);
     reg * temp = _carr[course_pos].ptr;
-    while (temp != (reg*)&_carr[course_pos])
+    reg * temp_stud;
+    student * temp2;
+    while (temp -> check() != COURSE)
     {
         if(temp -> cnext -> check() == STUD)
         {
-            student * temp2;
             temp2 = (student *)temp -> cnext;
+            std::cout << temp2 -> name << ", ";
+        } else
+        {
+            temp_stud = temp;
+            while (temp_stud -> cnext -> check() != STUD)
+            {
+                temp_stud = temp_stud -> cnext;
+            }
+            temp2 = (student *)temp_stud -> cnext;
             std::cout << temp2 -> name << ", ";
         }
         temp = temp -> snext;
@@ -54,13 +79,23 @@ void Multilist::GETCOURSELIST(const char * studname) const
     std::cout << "Courselist: ";
     int stud_pos = searchEl(studname);
     reg * temp = _sarr[stud_pos].ptr;
-    while (temp != (reg*)&_sarr[stud_pos])
+    reg * temp_stud;
+    course * temp2;
+    while (temp -> check() != STUD)
     {
-        if(temp -> snext -> check() == STUD)
+        if(temp -> snext -> check() == COURSE)
         {
-            student * temp2;
-            temp2 = (student *)temp -> snext;
-            std::cout << temp2 -> name << ", ";
+            temp2 = (course *)temp -> snext;
+            std::cout << temp2 -> number << ", ";
+        } else
+        {
+            temp_stud = temp;
+            while (temp_stud -> snext -> check() != COURSE)
+            {
+                temp_stud = temp_stud -> snext;
+            }
+            temp2 = (course *)temp_stud -> snext;
+            std::cout << temp2 -> number << ", ";
         }
         temp = temp -> cnext;
     }
@@ -214,26 +249,28 @@ int Multilist::searchEl(int x) const
     return hs;
 }
 
-reg * Multilist::get_last(reg * head) const
+reg * Multilist::get_last_course(reg * head) const
 {
     reg * temp = head;
     reg * temp2;
-    if(temp -> check() == STUD)
+    temp2 = head -> snext;
+    while (temp2 -> check() != COURSE)
     {
-        temp2 = head -> cnext;
-        while (temp2 != head)
-        {
-            temp = temp -> cnext;
-            temp2 = temp2 -> cnext;
-        }
-    } else
+        temp = temp -> snext;
+        temp2 = temp2 -> snext;
+    }
+    return temp;
+}
+
+reg * Multilist::get_last_stud(reg * head) const
+{
+    reg * temp = head;
+    reg * temp2;
+    temp2 = head -> cnext;
+    while (temp2 -> check() != STUD)
     {
-        temp2 = head -> snext;
-        while (temp2 != head)
-        {
-            temp = temp -> snext;
-            temp2 = temp2 -> snext;
-        }
+        temp = temp -> cnext;
+        temp2 = temp2 -> cnext;
     }
     return temp;
 }

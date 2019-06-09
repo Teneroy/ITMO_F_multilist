@@ -34,7 +34,8 @@ private:
     int searchEl(const char * x) const; //Поиск элемента студента, если не нашли, вернуть ERR
     int searchEl(int x) const; //Поиск элемента курса, если не нашли, вернуть ERR
     int hash(int key, int iter) const; //хеширование (key + iter) % SIZE
-    reg * get_last(reg * head) const;
+    reg * get_last_course(reg * head) const;
+    reg * get_last_stud(reg * head) const;
     reg * add_to_end(reg * head, reg * last) const;
     reg * add_to_end(reg * head, reg * last, reg * added) const;
 };
