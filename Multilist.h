@@ -38,6 +38,7 @@ private:
     reg * get_last_stud(reg * head) const;
     reg * add_to_end(reg * head, reg * last) const;
     reg * add_to_end(reg * head, reg * last, reg * added) const;
+    reg * get_prev_course(reg * cur) const;
 };
 
 #endif //ITMO_F_MULTILIST_MULTILIST_H
