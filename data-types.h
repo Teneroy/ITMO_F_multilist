@@ -5,8 +5,6 @@
 #ifndef ITMO_F_MULTILIST_DATA_TYPES_H
 #define ITMO_F_MULTILIST_DATA_TYPES_H
 
-enum {EMPTY_C = -1, REG = 0, STUD = -1, COURSE = 1};
-
 struct def
 {
     virtual int check() = 0;
@@ -25,7 +23,7 @@ struct reg : def
     {};
     int check() override
     {
-        return REG;
+        return 0;
     };
 };
 
@@ -40,7 +38,7 @@ struct student : def
     }
     int check() override
     {
-        return STUD;
+        return -1;
     };
 };
 
@@ -50,12 +48,12 @@ struct course : def
     reg * ptr;
     course()
     {
-        number = EMPTY_C;
+        number = -1;
         ptr = nullptr;
     }
     int check() override
     {
-        return COURSE;
+        return 1;
     };
 };
 

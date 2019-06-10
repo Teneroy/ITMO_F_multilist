@@ -10,28 +10,28 @@ void Multilist::ADD(const char * studname, unsigned int courseid)
     int stud_pos = searchEl(studname);
     int course_pos = searchEl(courseid);
     reg * temp;
-    reg * added;
-    if(_sarr[stud_pos].ptr == nullptr)
+    reg * added;//Указатель на добавленную запись
+    if(_sarr[stud_pos].ptr == nullptr) //Если у студента нет курсов
     {
-        _sarr[stud_pos].ptr = new reg((reg*)&_sarr[stud_pos], nullptr);
-        added = _sarr[stud_pos].ptr;
+        _sarr[stud_pos].ptr = new reg((reg*)&_sarr[stud_pos], nullptr); //Добавляем новую регистрационную запись
+        added = _sarr[stud_pos].ptr;//Указываем на новую запись
         std::cout << studname << "_1step: " << added << std::endl;
     } else
     {
-        temp = get_last_stud(_sarr[stud_pos].ptr);
+        temp = get_last_stud(_sarr[stud_pos].ptr); //Получаем последнюю регистрационную запись студента
         std::cout << "getLastStud - " << studname << ": " << temp << std::endl;
-        added = add_to_end(_sarr[stud_pos].ptr, temp);
+        added = add_to_end(_sarr[stud_pos].ptr, temp); //Добавляем в конец новую запись
     }
-    if(_carr[course_pos].ptr == nullptr)
+    if(_carr[course_pos].ptr == nullptr) //Если на курсе нет людей
     {
-        added -> snext = (reg*)&_carr[course_pos];
+        added -> snext = (reg*)&_carr[course_pos]; //Последеяя рег запись указывает на курс
         std::cout << courseid << ": " << "added_snext-" << added -> snext << ", course_addr-" << &_carr[course_pos] << std::endl;
-        _carr[course_pos].ptr = added;
+        _carr[course_pos].ptr = added; //Курс указывает на последнюю запись
     } else
     {
-        temp = get_last_course(_carr[course_pos].ptr);
-        added -> snext = temp -> snext;
-        temp -> snext = added;
+        temp = get_last_course(_carr[course_pos].ptr); //Получаем последнюю рез запись курса
+        added -> snext = temp -> snext; //Последняя запись указывает на курс
+        temp -> snext = added; //Последняя рег-запись курса указывает на добавленную запись
         //std::cout << studname << ": " << temp << std::endl;
         //added = add_to_end(_carr[course_pos].ptr, temp, added);
     }
@@ -47,29 +47,29 @@ void Multilist::DELETE(const char * studname, unsigned int courseid)
     reg * cur = _sarr[stud_pos].ptr;
     reg * temp_s;
     student * temp_stud;
-    while (cur != (reg*)&_sarr[stud_pos])
+    while (cur != (reg*)&_sarr[stud_pos]) //Идем по списку(по студентам cnext), получая текущую регистрационную запись студента и запоминая предыдудшую
     {
-        if(cur -> snext == c_addr)
+        if(cur -> snext == c_addr) //Если указатель на курс равен теущему курсу, то мы нашли элемент и выходим из цикла
             break;
-        if(cur -> snext -> check() == COURSE)
+        if(cur -> snext -> check() == COURSE) //Если указатель на следующую рег запись курса это сам курс, но не текущий курс
         {
-            cur = cur -> cnext;
-            if(prev_c -> check() == STUD)
+            cur = cur -> cnext; //Переходим на следующую регистрационную запись студента
+            if(prev_c -> check() == STUD)//Если предыдущая запись является структурой студента
             {
                 temp_stud = (student*)prev_c;
-                prev_c = temp_stud -> ptr;
+                prev_c = temp_stud -> ptr;//Смещаем указатель
             } else
             {
-                prev_c = prev_c -> cnext;
+                prev_c = prev_c -> cnext; //Смещаем указатель
             }
-            continue;
+            continue; //Новая итерация
         }
-        temp_s = cur -> snext;
-        while (temp_s -> snext -> check() != COURSE)
+        temp_s = cur -> snext;//УБРАТЬ НЕКСТ В ВАЙЛЕ
+        while (temp_s -> snext -> check() != COURSE) //Идем регистрационным записям курса, пока запись не будет ссылаться нна курс
         {
             temp_s = temp_s -> snext;
         }
-        if(temp_s -> snext == c_addr)
+        if(temp_s -> snext == c_addr) //Если запись ссылается на текущий курс, то мы выбрали нужную запись и можно выходить из цикла
             break;
         cur = cur -> cnext;
         prev_c = prev_c -> cnext;
@@ -78,18 +78,39 @@ void Multilist::DELETE(const char * studname, unsigned int courseid)
     reg * prev_s = get_prev_course(cur); //Получить предыдущую регистрационную запись с текущего курса
     //начинаем убирать связи
     //__убираем связи с курсами__//
-    if(prev_s -> check() == REG)
-    {
-        prev_s -> snext = cur -> snext;
-    } else
-    {
-        if(prev_s == cur -> snext)
-            _carr[course_pos].ptr = nullptr;
-        else
-            _carr[course_pos].ptr = cur -> snext;
-    }
+//    if(prev_s -> check() == REG)
+//    {
+//        prev_s -> snext = cur -> snext;
+//    } else
+//    {
+//        if(prev_s == cur -> snext)
+//            _carr[course_pos].ptr = nullptr;
+//        else
+//            _carr[course_pos].ptr = cur -> snext;
+//    }
+    ref_ptr_course(course_pos, prev_s, cur);
     //___//
     //__убираем связи со студентами__//
+    ref_ptr_stud(stud_pos, prev_c, cur);
+//    if(prev_c -> check() == STUD)
+//    {
+//        if(cur -> cnext -> check() == STUD)
+//        {
+//            _sarr[stud_pos].ptr = nullptr;
+//        } else
+//        {
+//            _sarr[stud_pos].ptr = cur -> cnext;
+//        }
+//    } else
+//    {
+//        prev_c -> cnext = cur -> cnext;
+//    }
+    //___//
+    delete cur;
+}
+
+void Multilist::ref_ptr_stud(int stud_pos, reg * prev_c, reg * cur)
+{
     if(prev_c -> check() == STUD)
     {
         if(cur -> cnext -> check() == STUD)
@@ -103,8 +124,20 @@ void Multilist::DELETE(const char * studname, unsigned int courseid)
     {
         prev_c -> cnext = cur -> cnext;
     }
-    //___//
-    delete cur;
+}
+
+void Multilist::ref_ptr_course(int course_pos, reg * prev_s, reg * cur)
+{
+    if(prev_s -> check() == REG)
+    {
+        prev_s -> snext = cur -> snext;
+    } else
+    {
+        if(prev_s == cur -> snext)
+            _carr[course_pos].ptr = nullptr;
+        else
+            _carr[course_pos].ptr = cur -> snext;
+    }
 }
 
 void Multilist::REFSTUD(const char * studname)

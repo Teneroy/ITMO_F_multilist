@@ -17,9 +17,9 @@ int main()
     a.PRINT();
     //a.GETSTUDLIST(102);
     a.GETCOURSELIST("Pit");
-//    a.DELETE("Alex", 101);
-//    a.GETSTUDLIST(101);
-//    a.GETCOURSELIST("Alex");
+    a.DELETE("Alex", 101);
+    a.GETSTUDLIST(101);
+    a.GETCOURSELIST("Alex");
 //    a.DELETE("Pit", 101);
 //    a.GETSTUDLIST(101);
 //    a.DELETE("Alex", 102);
@@ -28,9 +28,9 @@ int main()
 //    a.GETSTUDLIST(101);
 //    a.GETSTUDLIST(102);
 //    a.GETCOURSELIST("Pit");
-    a.REFCOURSE(101);
-    a.GETSTUDLIST(102);
-    a.PRINT();
+//    a.REFCOURSE(101);
+//    a.GETSTUDLIST(102);
+//    a.PRINT();
 //    a.GETCOURSELIST("Alex");
 //    a.GETCOURSELIST("Pit");
 //    a.GETSTUDLIST(102);
