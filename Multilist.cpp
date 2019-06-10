@@ -4,11 +4,32 @@
 
 #include "Multilist.h"
 
+Multilist::~Multilist()
+{
+    int i = 0;
+    for(; i < SIZE; i++)
+    {
+        if(_sarr[i].name != nullptr)
+        {
+            REFSTUD(_sarr[i].name);
+        }
+        delete [] _sarr[i].name;
+    }
+}
+
 void Multilist::ADD(const char * studname, unsigned int courseid)
 {
-    int key = getKey(studname);
     int stud_pos = searchEl(studname);
+    if(stud_pos == ERR)
+        return;
     int course_pos = searchEl(courseid);
+    if(course_pos == ERR)
+        return;
+    if(_sarr[stud_pos].ptr != nullptr && _carr[course_pos].ptr != nullptr)
+    {
+        if(search_on_course(course_pos, stud_pos))
+            return;
+    }
     reg * temp;
     reg * added;//Указатель на добавленную запись
     if(_sarr[stud_pos].ptr == nullptr) //Если у студента нет курсов
@@ -39,9 +60,14 @@ void Multilist::ADD(const char * studname, unsigned int courseid)
 
 void Multilist::DELETE(const char * studname, unsigned int courseid)
 {
-    int key = getKey(studname);
     int stud_pos = searchEl(studname);
+    if(stud_pos == ERR)
+        return;
     int course_pos = searchEl(courseid);
+    if(course_pos == ERR)
+        return;
+    if(!search_on_course(course_pos, stud_pos))
+        return;
     reg * c_addr = (reg*)&_carr[course_pos];
     reg * prev_c = (reg*)&_sarr[stud_pos];
     reg * cur = _sarr[stud_pos].ptr;
@@ -64,11 +90,7 @@ void Multilist::DELETE(const char * studname, unsigned int courseid)
             }
             continue; //Новая итерация
         }
-        temp_s = cur -> snext;//УБРАТЬ НЕКСТ В ВАЙЛЕ
-        while (temp_s -> snext -> check() != COURSE) //Идем регистрационным записям курса, пока запись не будет ссылаться нна курс
-        {
-            temp_s = temp_s -> snext;
-        }
+        temp_s = get_last_course(cur -> snext);//Идем регистрационным записям курса, пока запись не будет ссылаться нна курс
         if(temp_s -> snext == c_addr) //Если запись ссылается на текущий курс, то мы выбрали нужную запись и можно выходить из цикла
             break;
         cur = cur -> cnext;
@@ -78,90 +100,32 @@ void Multilist::DELETE(const char * studname, unsigned int courseid)
     reg * prev_s = get_prev_course(cur); //Получить предыдущую регистрационную запись с текущего курса
     //начинаем убирать связи
     //__убираем связи с курсами__//
-//    if(prev_s -> check() == REG)
-//    {
-//        prev_s -> snext = cur -> snext;
-//    } else
-//    {
-//        if(prev_s == cur -> snext)
-//            _carr[course_pos].ptr = nullptr;
-//        else
-//            _carr[course_pos].ptr = cur -> snext;
-//    }
     ref_ptr_course(course_pos, prev_s, cur);
     //___//
     //__убираем связи со студентами__//
     ref_ptr_stud(stud_pos, prev_c, cur);
-//    if(prev_c -> check() == STUD)
-//    {
-//        if(cur -> cnext -> check() == STUD)
-//        {
-//            _sarr[stud_pos].ptr = nullptr;
-//        } else
-//        {
-//            _sarr[stud_pos].ptr = cur -> cnext;
-//        }
-//    } else
-//    {
-//        prev_c -> cnext = cur -> cnext;
-//    }
-    //___//
     delete cur;
-}
-
-void Multilist::ref_ptr_stud(int stud_pos, reg * prev_c, reg * cur)
-{
-    if(prev_c -> check() == STUD)
-    {
-        if(cur -> cnext -> check() == STUD)
-        {
-            _sarr[stud_pos].ptr = nullptr;
-        } else
-        {
-            _sarr[stud_pos].ptr = cur -> cnext;
-        }
-    } else
-    {
-        prev_c -> cnext = cur -> cnext;
-    }
-}
-
-void Multilist::ref_ptr_course(int course_pos, reg * prev_s, reg * cur)
-{
-    if(prev_s -> check() == REG)
-    {
-        prev_s -> snext = cur -> snext;
-    } else
-    {
-        if(prev_s == cur -> snext)
-            _carr[course_pos].ptr = nullptr;
-        else
-            _carr[course_pos].ptr = cur -> snext;
-    }
 }
 
 void Multilist::REFSTUD(const char * studname)
 {
-    int key = getKey(studname);
     int stud_pos = searchEl(studname);
+    if(stud_pos == ERR)
+        return;
+    if(_sarr[stud_pos].ptr == nullptr)
+        return;
     reg * temp = _sarr[stud_pos].ptr;
     reg * prev;
     reg * temp_del;
-    int course_pos = 0;
-    course * c_temp;
     while (temp != (reg*)&_sarr[stud_pos])
     {
         prev = get_prev_course(temp);
         if(temp -> snext == prev) //на курсе 1 человек
         {
-            c_temp = (course*)prev;
-            course_pos = searchEl(c_temp -> number);
-            _carr[course_pos].ptr = nullptr;
+            change_course_ptr(prev, nullptr);
         } else if(prev -> check() != REG) //prev это не reg
         {
-            c_temp = (course*)prev;
-            course_pos = searchEl(c_temp -> number);
-            _carr[course_pos].ptr = temp -> snext;
+            change_course_ptr(prev, temp -> snext);
         } else
         {
             prev -> snext = temp -> snext;
@@ -176,24 +140,22 @@ void Multilist::REFSTUD(const char * studname)
 void Multilist::REFCOURSE(unsigned int courseid)
 {
     int course_pos = searchEl(courseid);
+    if(course_pos == ERR)
+        return;
+    if(_carr[course_pos].ptr == nullptr)
+        return;
     reg * temp = _carr[course_pos].ptr;
     reg * prev;
     reg * temp_del;
-    int stud_pos = 0;
-    student * s_temp;
     while (temp != (reg*)&_carr[course_pos])
     {
         prev = get_prev_stud(temp);//stud
         if(temp -> cnext == prev) //на у человека 1 курс
         {
-            s_temp = (student*)prev;
-            stud_pos = searchEl(s_temp -> name);
-            _sarr[stud_pos].ptr = nullptr;
+            change_stud_ptr(prev, nullptr);
         } else if(prev -> check() != REG) //prev это не reg
         {
-            s_temp = (student*)prev;
-            stud_pos = searchEl(s_temp -> name);
-            _sarr[stud_pos].ptr = temp -> cnext;
+            change_stud_ptr(prev, temp -> cnext);
         } else
         {
             prev -> cnext = temp -> cnext;
@@ -205,48 +167,13 @@ void Multilist::REFCOURSE(unsigned int courseid)
     _carr[course_pos].ptr = nullptr;
 }
 
-reg * Multilist::get_prev_stud(reg * cur) const
-{
-    reg * temp = cur;
-    student * s_temp;
-    while (true)
-    {
-        if (temp -> check() == STUD)
-        {
-            s_temp = (student*)temp;
-            if(s_temp -> ptr == cur)
-                return temp;
-            temp = s_temp -> ptr;
-        }
-        if(temp -> cnext == cur)
-            return temp;
-        temp = temp -> cnext;
-    }
-}
-
-reg * Multilist::get_prev_course(reg * cur) const
-{
-    reg * temp = cur;
-    course * c_temp;
-    while (true)
-    {
-        if (temp -> check() == COURSE)
-        {
-            c_temp = (course*)temp;
-            if(c_temp -> ptr == cur)
-                return temp;
-            temp = c_temp -> ptr;
-        }
-        if(temp -> snext == cur)
-            return temp;
-        temp = temp -> snext;
-    }
-}
 
 void Multilist::GETSTUDLIST(unsigned int courseid) const
 {
     std::cout << "Studlist: ";
     int course_pos = searchEl(courseid);
+    if(course_pos == ERR)
+        return;
     if(_carr[course_pos].ptr == nullptr)
         return;
     reg * temp = _carr[course_pos].ptr;
@@ -260,11 +187,7 @@ void Multilist::GETSTUDLIST(unsigned int courseid) const
             std::cout << temp2 -> name << ", ";
         } else
         {
-            temp_stud = temp;
-            while (temp_stud -> cnext -> check() != STUD)
-            {
-                temp_stud = temp_stud -> cnext;
-            }
+            temp_stud = get_last_stud(temp);
             temp2 = (student *)temp_stud -> cnext;
             std::cout << temp2 -> name << ", ";
         }
@@ -277,6 +200,8 @@ void Multilist::GETCOURSELIST(const char * studname) const
 {
     std::cout << "Courselist: ";
     int stud_pos = searchEl(studname);
+    if(stud_pos == ERR)
+        return;
     if(_sarr[stud_pos].ptr == nullptr)
         return;
     reg * temp = _sarr[stud_pos].ptr;
@@ -290,11 +215,7 @@ void Multilist::GETCOURSELIST(const char * studname) const
             std::cout << temp2 -> number << ", ";
         } else
         {
-            temp_stud = temp;
-            while (temp_stud -> snext -> check() != COURSE)
-            {
-                temp_stud = temp_stud -> snext;
-            }
+            temp_stud = get_last_course(temp);
             temp2 = (course *)temp_stud -> snext;
             std::cout << temp2 -> number << ", ";
         }
@@ -344,6 +265,119 @@ void Multilist::PRINT() const
     }
 }
 
+bool Multilist::search_on_course(int cpos, int spos) const
+{
+    reg * temp = _carr[cpos].ptr;
+    reg * s_addr = (reg*)&_sarr[spos];
+    if(temp -> cnext == s_addr)
+        return true;
+    temp = temp -> snext;
+    course * c_temp;
+    reg * temp2;
+    while (temp != _carr[cpos].ptr)
+    {
+        if (temp -> check() == COURSE)
+        {
+            c_temp = (course*)temp;
+            temp = c_temp -> ptr;
+            continue;
+        }
+        if(temp -> cnext == s_addr)
+            return true;
+        if(temp -> cnext -> check() != STUD)
+        {
+            temp2 = get_last_stud(temp);
+            if(temp2 -> cnext == s_addr)
+                return true;
+        }
+        temp = temp -> snext;
+    }
+    return false;
+}
+
+void Multilist::ref_ptr_stud(int stud_pos, reg * prev_c, reg * cur)
+{
+    if(prev_c -> check() == STUD)
+    {
+        if(cur -> cnext -> check() == STUD)
+        {
+            _sarr[stud_pos].ptr = nullptr;
+        } else
+        {
+            _sarr[stud_pos].ptr = cur -> cnext;
+        }
+    } else
+    {
+        prev_c -> cnext = cur -> cnext;
+    }
+}
+
+void Multilist::ref_ptr_course(int course_pos, reg * prev_s, reg * cur)
+{
+    if(prev_s -> check() == REG)
+    {
+        prev_s -> snext = cur -> snext;
+    } else
+    {
+        if(prev_s == cur -> snext)
+            _carr[course_pos].ptr = nullptr;
+        else
+            _carr[course_pos].ptr = cur -> snext;
+    }
+}
+
+void Multilist::change_course_ptr(reg * struct_ptr, reg * nptr)
+{
+    course * c_temp = (course*)struct_ptr;
+    int course_pos = searchEl(c_temp -> number);
+    _carr[course_pos].ptr = nptr;
+}
+
+void Multilist::change_stud_ptr(reg * struct_ptr, reg * nptr)
+{
+    student * s_temp = (student*)struct_ptr;
+    int stud_pos = searchEl(s_temp -> name);
+    _sarr[stud_pos].ptr = nptr;
+}
+
+reg * Multilist::get_prev_stud(reg * cur) const
+{
+    reg * temp = cur;
+    student * s_temp;
+    while (true)
+    {
+        if (temp -> check() == STUD)
+        {
+            s_temp = (student*)temp;
+            if(s_temp -> ptr == cur)
+                return temp;
+            temp = s_temp -> ptr;
+        }
+        if(temp -> cnext == cur)
+            return temp;
+        temp = temp -> cnext;
+    }
+}
+
+reg * Multilist::get_prev_course(reg * cur) const
+{
+    reg * temp = cur;
+    course * c_temp;
+    while (true)
+    {
+        if (temp -> check() == COURSE)
+        {
+            c_temp = (course*)temp;
+            if(c_temp -> ptr == cur)
+                return temp;
+            temp = c_temp -> ptr;
+        }
+        if(temp -> snext == cur)
+            return temp;
+        temp = temp -> snext;
+    }
+}
+
 void Multilist::insert_arr(const char * x)
 {
     int key = getKey(x);
@@ -354,9 +388,20 @@ void Multilist::insert_arr(const char * x)
         strcpy(_sarr[hs].name, x);
         return;
     }
-    int fp = getFreePos(key);
-    _sarr[fp].name = new char[20]; //отдельная функция?
-    strcpy(_sarr[fp].name, x);
+    //int fp = getFreePos(key);
+    int iter = 0;
+    int check = hs;
+    while(_sarr[hs].name != nullptr)
+    {
+        if(strcmp(_sarr[hs].name, x) == 0)
+            return;
+        iter++;
+        hs = hash(key, iter);
+        if(hs == check)
+            return;
+    }
+    _sarr[hs].name = new char[20]; //отдельная функция?
+    strcpy(_sarr[hs].name, x);
 }
 
 void Multilist::insert_arr(int x) {
@@ -366,8 +411,18 @@ void Multilist::insert_arr(int x) {
         _carr[hs].number = x;
         return;
     }
-    int fp = getFreePosCourse(x);
-    _carr[fp].number = x;
+    int iter = 0;
+    int check = hs;
+    while(_carr[hs].number != EMPTY_C)
+    {
+        if(_carr[hs].number == x)
+            return;
+        iter++;
+        hs = hash(x, iter);
+        if(hs == check)
+            return;
+    }
+    _carr[hs].number = x;
 }
 
 int Multilist::hash(int key, int iter) const
@@ -386,35 +441,6 @@ int Multilist::getKey(const char * data) const
     return key;
 }
 
-int Multilist::getFreePos(int key) const
-{
-    int iter = 0;
-    int hs = hash(key, iter);
-    int check = hs;
-    while(_sarr[hs].name != nullptr)
-    {
-        iter++;
-        hs = hash(key, iter);
-        if(hs == check)
-            return ERR;
-    }
-    return hs;
-}
-
-int Multilist::getFreePosCourse(int key) const
-{
-    int iter = 0;
-    int hs = hash(key, iter);
-    int check = hs;
-    while(_carr[hs].number != EMPTY_C)
-    {
-        iter++;
-        hs = hash(key, iter);
-        if(hs == check)
-            return ERR;
-    }
-    return hs;
-}
 
 int Multilist::searchEl(const char * x) const
 {

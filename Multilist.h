@@ -14,7 +14,7 @@ enum {EMPTY_C = -1, REG = 0, STUD = -1, COURSE = 1, SIZE = 50, ERR = -1000};
 class Multilist
 {
 public:
-    //~Multilist();
+    ~Multilist();
     void READFILE(const char * filename_s, const char * filename_c); //Чтение данных из файлов студентов и курсов
     void ADD(const char * studname, unsigned int courseid); //Добавление студента на курс
     void DELETE(const char * studname, unsigned int courseid); //Удалениие студента с курса
@@ -29,8 +29,6 @@ private:
     void insert_arr(int x); //вставка в массив курсов
     void insert_arr(const char * x); //вставка в массив студентов
     int getKey(const char * data) const; //Суммирует коды символов в строке
-    int getFreePos(int key) const; //Получить позицию  для вставкки, путем повторного хеширования
-    int getFreePosCourse(int key) const;
     int searchEl(const char * x) const; //Поиск элемента студента, если не нашли, вернуть ERR
     int searchEl(int x) const; //Поиск элемента курса, если не нашли, вернуть ERR
     int hash(int key, int iter) const; //хеширование (key + iter) % SIZE
@@ -42,6 +40,9 @@ private:
     reg * get_prev_stud(reg * cur) const; //Получить предыдущую регистрационную запись студента(идем по сnext)
     void ref_ptr_course(int course_pos, reg * prev_s, reg * cur);
     void ref_ptr_stud(int stud_pos, reg * prev_c, reg * cur);
+    void change_course_ptr(reg * struct_ptr, reg * nptr);//меняем указатель эл-та курса
+    void change_stud_ptr(reg * struct_ptr, reg * nptr);//меняем указатель эл-та студента
+    bool search_on_course(int cpos, int spos) const;
 };
 
 #endif //ITMO_F_MULTILIST_MULTILIST_H
