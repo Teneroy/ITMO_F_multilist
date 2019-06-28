@@ -29,6 +29,9 @@ int main()
 //    a.REFSTUD("Alex");
     a.GETSTUDLIST(101);
     a.GETSTUDLIST(102);
+    a.ADD("Pit", 102);
+    a.DELETE("Pit", 101);
+    a.GETSTUDLIST(102);
 //    a.GETCOURSELIST("Pit");
    // a.REFCOURSE(102);
     //a.GETSTUDLIST(102);

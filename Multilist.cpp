@@ -66,36 +66,32 @@ void Multilist::DELETE(const char * studname, unsigned int courseid)
     int course_pos = searchEl(courseid);
     if(course_pos == ERR)
         return;
-    if(!search_on_course(course_pos, stud_pos))
+    if(_carr[course_pos].ptr == nullptr || _sarr[stud_pos].ptr == nullptr)
         return;
     reg * c_addr = (reg*)&_carr[course_pos];
+    reg * s_addr = (reg*)&_sarr[stud_pos];
     reg * prev_c = (reg*)&_sarr[stud_pos];
     reg * cur = _sarr[stud_pos].ptr;
     reg * temp_s;
     student * temp_stud;
-    while (cur != (reg*)&_sarr[stud_pos]) //Идем по списку(по студентам cnext), получая текущую регистрационную запись студента и запоминая предыдудшую
+    while (cur != s_addr) //Идем по списку(по студентам cnext), получая текущую регистрационную запись студента и запоминая предыдудшую
     {
         if(cur -> snext == c_addr) //Если указатель на курс равен теущему курсу, то мы нашли элемент и выходим из цикла
             break;
         if(cur -> snext -> check() == COURSE) //Если указатель на следующую рег запись курса это сам курс, но не текущий курс
         {
+            prev_c = cur;
             cur = cur -> cnext; //Переходим на следующую регистрационную запись студента
-            if(prev_c -> check() == STUD)//Если предыдущая запись является структурой студента
-            {
-                temp_stud = (student*)prev_c;
-                prev_c = temp_stud -> ptr;//Смещаем указатель
-            } else
-            {
-                prev_c = prev_c -> cnext; //Смещаем указатель
-            }
             continue; //Новая итерация
         }
         temp_s = get_last_course(cur -> snext);//Идем регистрационным записям курса, пока запись не будет ссылаться нна курс
         if(temp_s -> snext == c_addr) //Если запись ссылается на текущий курс, то мы выбрали нужную запись и можно выходить из цикла
             break;
+        prev_c = cur;
         cur = cur -> cnext;
-        prev_c = prev_c -> cnext;
     }
+    if(cur == s_addr)
+        return;
 
     reg * prev_s = get_prev_course(cur); //Получить предыдущую регистрационную запись с текущего курса
     //начинаем убирать связи
